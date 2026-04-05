@@ -1,0 +1,440 @@
+#!/bin/bash
+
+### Convention: 
+#1-Environment variables or shell variables introduced by the operating system, shell startup scripts, or the shell itself, etc., are usually all in CAPITALS.
+#2-To prevent your variables from conflicting with these variables, it is a good practice to use lower_case variable names.
+#3-However, I will use CAPITALS letter if file name etc include CAPITALS such CONTCAR, XDATCAR etc.
+
+### Format: All the funcitons will be written in two steps:
+# 1-definition of function
+# 2-How to call function (commented out)
+# 3-All the function are written using name() { in first line and } in last line, so all can be grep using 'grep "() {" ~/.VASP_functions'
+# 4-Definition of the fuction can be found using 'type function_name/file_name' or 'declare -f function_name'
+
+
+### Structures:
+## i) vasp_inp_check [Checking whether generated input are okay].
+## ii) vasp_rlx_clean, vasp_output_clean  [Cleaning outpus].
+## ii) vasp_inp.sh [Generating inputs].
+## iv) vasp_out.sh [Error analysis and postprocessing]. 
+
+## cleaning the vasp output function
+vasp_inp_check() {
+echo -e "\e[1;32m POSCAR: \e[0m"
+head POSCAR
+echo -e "\e[1;32m POTCAR: \e[0m"
+grep "PAW_PBE" POTCAR
+echo -e "\e[1;32m INCAR: \e[0m"
+grep "MAGMOM" INCAR
+echo -e "\e[1;32m KPOINTS: \e[0m"
+head KPOINTS
+}
+
+vasp_rlx_clean() { 
+rm -f CHG CHGCAR DOSCAR EIGENVAL IBZKPT LOCPOT  PCDAT POT PROCAR REPORT vasprun.xml WAVECAR XDATCAR
+ls
+}
+
+vasp_output_clean() { 
+rm -f CHG CHGCAR CONTCAR OUTCAR OSZICAR DOSCAR EIGENVAL IBZKPT LOCPOT  PCDAT POT PROCAR REPORT vasprun.xml WAVECAR XDATCAR
+ls
+}
+
+
+## backing up POSCAR, OUTCAR and OSZICAR files:
+
+backup_poscar() {
+    #lowest negative was first one to be executed and so on.
+    max_backup=9  # Maximum backup index is 9 (if needed adjust it)
+
+    # backup only required if CONTCAR exists
+    if [[ ! -s "CONTCAR" ]]; then
+    return  # Exit if CONTCAR doesn't exist OR is empty
+    fi
+    
+    for ((i=max_backup; i>=0; i--)); do
+        if [[ -e "POSCAR-$i" ]]; then
+            mv "POSCAR-$i" "POSCAR-$((i+1))"
+        fi
+    done
+
+    if [[ -e "POSCAR" ]]; then
+        mv "POSCAR" "POSCAR-0"
+    fi
+    
+    mv "CONTCAR" "POSCAR"
+}
+
+backup_outcar() {
+    #lowest negative was first one to be generated and so on.
+    max_backup=9  # Maximum backup index is 9 (if needed adjust it)
+    
+    # backup only required if OUTCAR exists
+    if [[ ! -s "OUTCAR" ]]; then
+        return  # Exit function if CONTCAR doesn't exist
+    fi
+    
+    for ((i=max_backup; i>=0; i--)); do
+        if [[ -e "OUTCAR-$i" ]]; then
+            mv "OUTCAR-$i" "OUTCAR-$((i+1))"
+        fi
+    done
+
+    mv "OUTCAR" "OUTCAR-0"
+}
+
+backup_oszicar() {
+    #lowest negative was first one to be generated and so on.
+    max_backup=9  # Maximum backup index is 9 (if needed adjust it)
+    
+    # backup only required if OSZICAR exists
+    if [[ ! -s "OSZICAR" ]]; then
+        return  # Exit function if CONTCAR doesn't exist
+    fi
+
+    for ((i=max_backup; i>=0; i--)); do
+        if [[ -e "OSZICAR-$i" ]]; then
+            mv "OSZICAR-$i" "OSZICAR-$((i+1))"
+        fi
+    done
+
+    mv "OSZICAR" "OSZICAR-0"
+}
+
+
+backup_anyfile() {
+    #lowest negative was first one to be executed and so on.
+    max_backup=9  # Maximum backup index is 9 (if needed adjust it)
+    inpfile=$1
+    if [[ ! -s $inpfile ]]; then
+        return  # Exit function if CONTCAR doesn't exist
+    fi
+
+    for ((i=max_backup; i>=0; i--)); do
+        if [[ -e "$inpfile-$i" ]]; then
+            mv "$inpfile-$i" "$inpfile-$((i+1))"
+        fi
+    done
+
+    mv "$inpfile" "$inpfile-0"
+}
+
+#backup_poscar
+#backup_outcar
+#backup_oszicar
+#backup_anyfile vasp.out
+
+
+forward_backup() {
+    drct=$(pwd)
+    conti="$1"
+
+    if [[ -d "$drct/$conti" ]]; then
+        if [[ -z "$conti" ]]; then
+        echo "Usage: forward_backup <folder_name>"
+        return 1
+        else
+        # Find the next available POSCAR-N filename
+	
+	cp $drct/POSCAR-*      "$drct/$conti/" 2>/dev/null
+	cp $drct/OUTCAR-*      "$drct/$conti/" 2>/dev/null 
+	cp $drct/OSZICAR-*     "$drct/$conti/" 2>/dev/null
+	cp $drct/vasprun-*.xml "$drct/$conti/" 2>/dev/null
+
+
+        i=0
+        while [[ -e "$drct/POSCAR-$i" ]]; do
+		#echo "copying $i to $((i+1))"
+            ((i++))
+        done
+	
+	
+        #echo "After loop: $i" 
+	echo "Copying to $drct/$conti"
+            cp "$drct/POSCAR" "$drct/$conti/POSCAR-$i"
+            cp "$drct/OUTCAR" "$drct/$conti/OUTCAR-$i"
+            cp "$drct/OSZICAR" "$drct/$conti/OSZICAR-$i"
+            cp "$drct/vasprun.xml" "$drct/$conti/vasprun-$i.xml"
+	fi
+    else
+        echo "Given folder does not exist"
+    fi
+}
+
+#forward_backup test
+
+
+
+backward_backup() {
+    local conti=$1
+    local drct=$(pwd)
+
+    # Check if the directory exists
+    if [[ -d "$drct/$conti" ]]; then
+        if [[ -z "$conti" ]]; then
+        echo "backward_backup  <folder_name>"
+        return 1
+        else
+        # Find the highest existing POSCAR-N
+        local i=0
+        while [[ -e "$drct/POSCAR-$i" ]]; do
+            ((i++))
+        done
+
+        # Shift POSCAR-N → POSCAR-(N+1) in reverse order
+        while (( i > 0 )); do
+		echo $i
+		echo "$drct/POSCAR-$i"
+		j=$((i-1))
+		echo "$drct/POSCAR-$j to $drct/POSCAR-$((j+1))"
+		mv "$drct/POSCAR-$j" "$drct/POSCAR-$((j+1))"
+		mv "$drct/OUTCAR-$j" "$drct/OUTCAR-$((j+1))"
+		mv "$drct/OSZICAR-$j" "$drct/OSZICAR-$((j+1))"
+		mv "$drct/vasprun-$j.xml" "$drct/vasprun-$((j+1)).xml"
+            ((i--))
+        done
+
+        # Copy POSCAR to POSCAR-0
+        echo "Copying to $drct/$conti"
+        echo "$drct/$conti/POSCAR to $drct/$conti/POSCAR-0"
+        cp "$drct/$conti/POSCAR" "$drct/$conti/POSCAR-0"
+        cp "$drct/$conti/OUTCAR" "$drct/$conti/OUTCAR-0"
+        cp "$drct/$conti/OSZICAR" "$drct/$conti/OSZICAR-0"
+        cp "$drct/$conti/vasprun.xml" "$drct/$conti/vasprun-0.xml"
+
+	cp $drct/* "$drct/$conti"
+	fi
+    else
+        echo "Given folder does not exist: $drct/$conti"
+    fi
+}
+
+#backward_backup ".."
+
+
+
+create_XDATCAR_using_CONTCARs() {
+for dir in "$@";
+do
+elem_num=$(sed -n '7p' "$dir/CONTCAR")
+line_num=$(echo $elem_num 8 | tr ' ' '+' | bc)
+head -n "$line_num" "$dir/CONTCAR" >> XDATCAR.vasp
+done
+}
+
+#reate_XDATCAR_using_CONTCARs single_Fe_4/ single_Fe_6/ dimer_Fe_13/
+
+create_XDATCAR_using_POSCARs() {
+for dir in "$@";
+do
+elem_num=$(sed -n '7p' "$dir/POSCAR")
+line_num=$(echo $elem_num 8 | tr ' ' '+' | bc)
+head -n "$line_num" "$dir/POSCAR" >> XDATCAR.vasp
+done
+}
+
+#create_XDATCAR_using_POSCARs single_Fe_4/ single_Fe_6/ dimer_Fe_13/
+
+
+relative_E0() {
+    ref_energy=$(grep "TOTEN" "$1/OUTCAR" | tail -n 1 | awk '{print $5}')
+    echo
+    printf "Reference: %-30s -> %12.6f eV\n" "$1" "$ref_energy"
+
+    echo
+    printf "%-50s %20s eV\n" "System" "Relative_Energy_(ΔE)"
+    for file in "$@"; do
+        energy=$(grep "TOTEN" "$file/OUTCAR" | tail -n 1 | awk '{print $5}')
+        relative=$(echo "$energy - $ref_energy" | bc -l)
+        printf "%-50s %12.6f\n" "$file" "$relative"
+    done
+}
+
+#relative_E0 "$@"
+
+
+get_mag_os() {
+    for folder in "$@"; do
+        oszicar_path="$folder/OSZICAR"
+        if [ -f "$oszicar_path" ]; then
+            mag_os=$(grep "F=" "$oszicar_path" | head -n 1)
+            echo -e "$folder:\tmag_os: $mag_os"
+        else
+            echo -e "$folder:\t\e[31mOSZICAR not found\e[0m"
+        fi
+    done
+}
+
+
+get_mag_rlx() {
+    for folder in "$@"; do
+        vaspout_path="$folder/vasp.out"
+
+        if [ -f "$vaspout_path" ]; then
+            mag_rlx=$(grep "mag" "$vaspout_path" | tail -n 1)
+            echo -e "$folder:\tmag_rlx: $mag_rlx"
+        else
+            echo -e "$folder:\t\e[31mvasp.out not found\e[0m"
+        fi
+    done
+}
+
+vasp_job_status() {
+    #local drct=$(pwd)
+    local sn=1
+
+    echo -e "S.N.   Folder                              Job-status                       Energy"
+    echo -e "----------------------------------------------------------------------------------"
+
+    for i in "$@"; do
+        #cd "$drct/$i" || continue
+
+        if grep -q 'User time' "$i/OUTCAR" 2>/dev/null; then
+            status0="Done"
+            energy0=$(grep "TOTEN" "$i/OUTCAR" | tail -n 1 | awk '{print $5}')
+        else
+            status0="Not done"
+            energy0="Not calculated"
+        fi
+
+        printf "%-7s %-35s %-25s %25s\n" "$sn" "$i" "$status0" "$energy0"
+        ((sn++))
+    done
+}
+
+#vasp_job_status "$@"
+
+vasp_job_status_combined() {
+  # Read input: either from args or stdin
+  if [[ -t 0 && "$#" -ne 0 ]]; then
+    input=("$@")
+  else
+    # Read from stdin into array
+    mapfile -t input
+  fi
+
+  local sn=1
+  echo -e "S.N.   Folder                              Job-status                       Energy"
+  echo -e "----------------------------------------------------------------------------------"
+
+  for i in "${input[@]}"; do
+  new_i="${i/OUTCAR}"
+    if grep -q 'User time' "$new_i/OUTCAR" 2>/dev/null; then
+      status0="Done"
+      energy0=$(grep "TOTEN" "$new_i/OUTCAR" | tail -n 1 | awk '{print $5}')
+    else
+      status0="Not done"
+      energy0="Not calculated"
+    fi
+
+    printf "%-7s %-35s %-25s %25s\n" "$sn" "$new_i" "$status0" "$energy0"
+    ((sn++))
+  done
+}
+
+#vasp_job_status_combined ZPE  ZPE0  ZPE_all  ZPE_mag-2/KS ZPE_mag-2/catKS
+#echo -e "ZPE\nZPE0\nZPE_all\nZPE_mag-2/KS\nZPE_mag-2/catKS" | vasp_job_status_combined
+
+
+scf_convergence() {
+    echo -e "System\t\t\tSCF Status"
+    echo "-------------------------------"
+
+    for folder in "$@"; do
+            if [ ! -f $folder/INCAR ] || [ ! -f $folder/OSZICAR ]; then
+                echo -e "$folder\t\t\e[1;31mMissing INCAR or OSZICAR\e[0m"
+                continue
+            fi
+
+            nelm_incar_line=$(grep "NELM" $folder/INCAR)
+            if [[ -z "$nelm_incar_line" ]]; then
+                nelm_in=60
+            else
+                nelm_in=$(echo "$nelm_incar_line" | awk -F '=' '{print $2}' | tr -d ' ')
+            fi
+
+            nelm_os=$(grep -w -B 1 "1 F=" $folder/OSZICAR | head -n 1 | awk '{print $2}')
+
+            if [[ -z "$nelm_os" ]]; then
+                echo -e "$folder\t\t\e[1;31mNot completed SCF\e[0m"
+            else
+                if [[ $nelm_in -gt $nelm_os ]]; then
+                    echo -e "$folder\t\t\e[32mConverged\e[0m"
+                else
+                    echo -e "$folder\t\t\e[31mNot converged\e[0m"
+                fi
+            fi
+
+    done
+}
+
+#scf_convergence polysulfides/S8/ZPE  polyabosrbtion/Ni/K2S/ZPE
+
+
+scf_convergence_combined() {
+    # Read input: either from args or stdin
+    if [[ -t 0 && "$#" -ne 0 ]]; then
+      input=("$@")
+    else
+      # Read from stdin into array
+      mapfile -t input
+    fi
+
+    local sn=1
+
+    echo -e "System\t\t\tSCF Status"
+    echo "-------------------------------"
+
+    for folder in "${input[@]}"; do
+    new_folder="${folder/OUTCAR}"
+            if [ ! -f $new_folder/INCAR ] || [ ! -f $new_folder/OSZICAR ]; then
+                echo -e "$new_folder\t\t\e[1;31mMissing INCAR or OSZICAR\e[0m"
+                continue
+            fi
+
+            nelm_incar_line=$(grep -E '^[^#]*\bNELM\b' $new_folder/INCAR)
+            if [[ -z "$nelm_incar_line" ]]; then
+                nelm_in=60
+            else
+                nelm_in=$(echo "$nelm_incar_line" | awk -F '=' '{print $2}' | awk '{print $1}' | tr -d ' ')
+            fi
+
+            nelm_os=$(grep -w -B 1 "1 F=" $new_folder/OSZICAR | head -n 1 | awk '{print $2}')
+
+            if [[ -z "$nelm_os" ]]; then
+                echo -e "$new_folder\t\t\e[1;31mNot completed SCF\e[0m"
+            else
+                if [[ $nelm_in -gt $nelm_os ]]; then
+                    echo -e "$new_folder\t\t\e[32mConverged\e[0m"
+                else
+                    echo -e "$new_folder\t\t\e[31mNot converged\e[0m"
+                fi
+            fi
+   
+    done
+}
+
+#scf_convergence_combined 1_most/ZPE0   1_most/ZPE 1_most 
+#echo -e "1_most/ZPE0\n1_most/ZPE\n1_most" | scf_convergence_combined 
+
+
+#scf_convergence() {
+#nelm_incar_line=$(grep "NELM" INCAR)
+#if [[ -z "$nelm_incar_line" ]]; then
+#    nelm_in=60  # Default values of NELM
+#else
+#nelm_in=$(echo $nelm_incar_line | awk -F '=' '{print $2}')
+#fi
+#
+#nelm_os=$(grep -w -B 1 "1 F=" OSZICAR | head -n 1 | awk '{print $2}')
+#echo $nelm_in, $nelm_os
+#if [[ -z $nelm_os ]];then
+#    echo -e "\e[1;31mNot completed SCF.\e[0m"
+#else
+#    if [[ $nelm_in -gt $nelm_os ]]; then
+#        echo -e "\e[32mConverged.\e[0m"
+#    else
+#        echo -e "\e[31mNot converged.\e[0m"
+#    fi
+#fi
+#}

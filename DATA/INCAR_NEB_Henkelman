@@ -1,0 +1,29 @@
+ SIGMA = 0.200000
+ EDIFF = 1.00e-06
+ ALGO = Normal
+ GGA = PE
+ PREC = Normal
+ ISIF = 2 
+ ISMEAR = 1 
+ ISPIN = 1 
+ ISYM = 0 
+ NELM = 100 
+ NCORE = 8 
+ LASPH = .TRUE.
+ LCHARG = .FALSE.
+ LWAVE = .FALSE.
+ LREAL = Auto
+
+# NEB PARAMETERS
+ ICHAIN = 0 
+ LCLIMB = .TRUE.
+ SPRING = -5
+ IMAGES = 6
+
+# OPTIMIZER PARAMETERS
+ IBRION = 3 
+ POTIM = 0 
+ IOPT = 3 
+ EDIFFG = -0.01
+ NSW = 500 
+

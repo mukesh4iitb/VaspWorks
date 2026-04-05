@@ -1,0 +1,42 @@
+ SYSTEM =  GRPH                            
+ Electronic Relaxation 1
+  ISTART  = 0
+  ICHARG  = 2
+  LAECHG  = TRUE.
+  LCHGCAR = TRUE.
+  LELF    = TRUE.
+  ISPIN   = 2
+  LWAVE   =.False.
+# NELMIN  = 8
+  PREC    = Accurate
+  NCORE   = 4
+# NBANDS  = 60
+  ENCUT   = 500
+# ENAUG   = 2275
+  LREAL   = A
+  EDIFF   =  1E-6
+  EDIFFG  = -0.01
+  NSW     = 00
+  IBRION  = -1
+  ISIF    =  2
+#  NPAR    = 4
+#  IVDW = 11
+# VDW_S6 = 1.0
+# VDW_SR = 1.217
+# VDW_S8 = 0.722
+# LVDW= .TRUE.
+# VDW_C6 =  1.75  
+#  VDW_R0 =  1.452
+
+# POTIM   = 0.3
+# PSTRESS = -22.2
+   DOS related values
+   ISMEAR = -5; 
+   LORBIT = 10
+   NEDOS = 10001
+   EMIN = -20
+   EMAX = 20 
+#  NGX =64 NGY = 64  NGZ = 98 
+#  NGXF = 128 NGYF =128 NGZF = 196
+
+#LVHAR = .TRUE

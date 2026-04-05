@@ -1,0 +1,50 @@
+SYSTEM =  GRPH                            
+ Electronic Relaxation 1
+  ISTART  = 1
+  ICHARG  = 2
+  ISPIN   = 2
+  LWAVE   = .FALSE.
+  LCHARG  = .TRUE
+# NELMIN  = 8
+  PREC    = Accurate
+  NPAR   = 16
+  NBANDS  = 96
+  ENCUT   = 500
+# ENAUG   = 2275
+  LREAL   = A
+  EDIFF   =  1E-6
+  EDIFFG  = -0.01
+  NSW     = 00
+  IBRION  =  -1
+  ISIF    =  2
+
+# Selects the HSE06 hybrid functional
+  LHFCALC = .TRUE. 
+  HFSCREEN = 0.2 
+  ALGO = D
+  TIME = 0.4 
+  LSUBROT = .TRUE.
+     
+## Selects the PBE0  hybrid functional
+#LHFCALC = .TRUE. ;
+#ALGO = D ; TIME = 0.4 ; LSUBROT = .TRUE.
+
+
+
+#  IVDW = 11
+# VDW_S6 = 1.0
+# VDW_SR = 1.217
+# VDW_S8 = 0.722
+# LVDW= .TRUE.
+# VDW_C6 =  1.75  
+#  VDW_R0 =  1.452
+
+# POTIM   = 0.3
+# PSTRESS = -22.2
+
+##DOS related values
+   ISMEAR = 0;
+   SIGMA  = 0.005
+#  NGX =64 NGY = 64  NGZ = 98 
+#  NGXF = 128 NGYF =128 NGZF = 196
+
