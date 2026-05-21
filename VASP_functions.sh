@@ -501,7 +501,7 @@ final_outcar_path () {
 
 vasp_job_status_combined() {
   # Read input: either from args or stdin
-  if [[ -t 0 && "$#" -ne 0 ]]; then
+  if (( $# > 0 )); then   # replacing this [[ -t 0 && "$#" -ne 0 ]] with (( $# > 0 ))
     input=("$@")
   else
     # Read from stdin into array
