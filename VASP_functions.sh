@@ -500,6 +500,7 @@ final_outcar_path () {
 ## To see the explain of $@ and $* see: https://unix.stackexchange.com/questions/129072/whats-the-difference-between-and
 
 vasp_job_status_combined() {
+  local input=()
   # Read input: either from args or stdin
   if (( $# > 0 )); then   # replacing this [[ -t 0 && "$#" -ne 0 ]] with (( $# > 0 ))
     input=("$@")
