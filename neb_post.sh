@@ -3,10 +3,13 @@
 echo "Select an option:"
 echo "01) Analyzing and continuing jobs"
 echo "02) Finding outputs"
+echo "03) Using vtst for smooth curve steps:"
 
 
 vaspworks_location=$(which neb_post.sh)
 vaspworks_dir=$(dirname $vaspworks_location)
+
+
 
 source $vaspworks_dir/VASP_functions.sh  ## it is need to backup and cleaning vaspout files.
 
@@ -113,30 +116,43 @@ case "$inp0" in
         esac
         ;;
 	"02" | "2")
-        echo "201) XDATCAR_IN.vasp"
-        echo "202) XDATCAR_FN.vasp and neb_energy.txt"
-        echo "203) XDATCAR_IN, XDATCAR_FN and neb_energy.txt"
+        echo "201) XDATCAR_IN.vasp and INIT_NEB_PATH.vasp"
+        echo "202) XDATCAR_FN.vasp, OPT_NEB_PATH.vasp, and neb_energy.txt"
+        echo "203) XDATCAR_IN, XDATCAR_FN, INIT_NEB_PATH.vasp, OPT_NEB_PATH.vasp and neb_energy.txt"
         read -p "Enter your choice: " inp1
         case "$inp1" in
                  "201")
-                 echo -e "\nCreating:\n XDATCAR_IN.vasp"
+                 echo -e "\nCreating: XDATCAR_IN.vasp"
                  create_XDATCAR_IN
+                 echo -e "\nCreating: INIT_NEB_POSCAR.vasp"
 		 python3 $vaspworks_dir/PYTHONS/init_neb_path.py
                  ;;
                  
                  "202")
-                 echo -e "\nCreating:\n 1- XDATCAR_FN.vasp \n 2- neb_energy.txt"
+                 echo -e "\nCreating: XDATCAR_FN.vasp"
                  create_XDATCAR_FN
-                 extract_energy	
+		
+                 echo -e "\nCreating: OPT_NEB_POSCAR.vasp"
 		 python3 $vaspworks_dir/PYTHONS/neb_path.py
+
+                 echo -e "\nCreating: neb_energy.txt"
+                 extract_energy	
                  ;;
                  
                  "203")
-                 echo -e "\nCreating:\n 1- XDATCAR_IN.vasp \n 2- XDATCAR_FN.vasp \n 3- neb_energy.txt"
+                 echo -e "\nCreating: XDATCAR_FN.vasp"
                  create_XDATCAR_IN
+
+                 echo -e "\nCreating: INIT_NEB_POSCAR.vasp"
 		 python3 $vaspworks_dir/PYTHONS/init_neb_path.py
+
+                 echo -e "\nCreating: OPT_NEB_POSCAR.vasp"
 		 python3 $vaspworks_dir/PYTHONS/neb_path.py
+
+                 echo -e "\nCreating: XDATCAR_FN.vasp"
                  create_XDATCAR_FN
+
+                 echo -e "\nCreating: neb_energy.txt"
                  extract_energy
                  ;;
 
@@ -144,17 +160,15 @@ case "$inp0" in
                  echo "Invalid option. Please choose a valid option"	
                  ;;
         esac
-        ;;
+	;;
+        "03" | "3")
+                  echo "Steps for smooth NEB curves:"
+		  echo "step0: module load gnuplot"
+                  echo "Step1: nebbarrier.pl (generate neb.dat)"
+                  echo "Step2: nebspline.pl  (read neb.dat and generate spline.dat, exts.dat and mep.eps)"
+                  echo "ref: https://theory.cm.utexas.edu/vtsttools/scripts.html"
+                  ;;
         *)
         echo "Invalid option. Please choose a valid option."
         ;;
 esac
-
-
-
-
-
-
-
-
-
