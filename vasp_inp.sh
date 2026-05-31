@@ -17,10 +17,10 @@ printf "%-25s%-25s\n" "104) hse-dos" "104l) lhse-dos.sh"
 printf "%-25s%-25s\n" "105) hse-bands" "105l) lhse-bands.sh"
 
 echo 
-echo "ZPE/NEB calculations"
-printf "%-35s%-35s\n" "201) Sel Dyn POSCAR" "201l) lselective_dynamics.py"
-printf "%-35s%-35s%-35s\n" "202) ZPE" "202l) lzpe.sh" "202p) pzpe.sh"
-printf "%-35s%-35s\n" "203) NEB" "203l) loop script: lneb.sh"
+echo "ZPE/NEB calculations; IN=input, l=loop, p=post"
+printf "%-25s%-35s\n" "201) Sel Dyn POSCAR" "201l) lselective_dynamics.py"
+printf "%-25s%-35s%-25s\n" "202) ZPE-IN" "202l) lzpe.sh" "202p) pzpe.sh"
+printf "%-25s%-35s%-25s\n" "203) NEB-IN" "203l) lneb.sh" "203p) neb_post.sh"
 
 echo 
 echo "Stability (AIMD/Phonon/Mechanical)"
@@ -29,7 +29,11 @@ printf "%-30s%s\n" "302) Phonon" "302l) lphonon.sh"
 printf "%-30s%s\n" "303) Mech stability (Cij)" "303l) lmech_stability.sh"
 
 echo 
+echo "COHP/COOP/COBI analysis:"
+printf "%-30s%s\n" "401) generate max_basis" "401l) copy lobster*.py files"
+printf "%-30s%s\n" "402) Improve ICOXXLIST_lobster files for (lobsterpy)"
 
+echo 
 
 read -p "Enter your choice: " inp
 
@@ -143,6 +147,10 @@ case "$inp" in
         echo "copying lneb.sh"
         cp $vaspworks_dir/SCRIPTS/loop_scripts/lneb.sh .
         ;;
+    203p )
+        echo "calling neb_post.sh script:"
+        bash $vaspworks_dir/SCRIPTS/neb_post.sh 
+        ;;
 
     301 )
        echo "creating md inp:"
@@ -162,8 +170,22 @@ case "$inp" in
         ;;
     303 | 303l )
         echo "Mechanical (Elastic) properties working on it."
-
         ;;
+    401 )
+	echo "generateing max_basis folder to run vasp:"
+	python3 $vaspworks_dir/PYTHONS/lobsterInpImprove_and_generate_basis_max.py
+	;;
+    401l )
+        echo "copying lobster*.py files for:"
+	echo "1- generating max_basis and" 
+	echo "2 -improving ICOXXLIST_lobster files (to work with lobsterpy)."
+	cp $vaspworks_dir/PYTHONS/lobsterInpImprove_and_generate_basis_max.py .
+	cp $vaspworks_dir/PYTHONS/lobsterpyInpImprove.py .
+	;;
+    403 )
+        echo "Improving ICOXXLIST_lobster files (to work with lobsterpy)"
+	python3 $vaspworks_dir/PYTHONS/lobsterpyInpImprove.py
+	;;
     *)
         echo "Invalid option. Please choose a valid option."
         ;;
