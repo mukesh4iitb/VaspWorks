@@ -20,7 +20,7 @@
 
 # magnetism
 #  MAGMOM = 24*0 36*0 12*0 1*0.6
- LORBMOM = .TRUE.
+# LORBMOM = .TRUE.
   LORBIT = 10
 
 # parallization
@@ -28,6 +28,7 @@
 NCORE    = 4
 #NSIM     = 8
 
+LASPH = .TRUE.
 
 
 # VDW_S6 = 1.0
@@ -41,6 +42,6 @@ NCORE    = 4
 # PSTRESS = -22.2
    DOS related values
    ISMEAR = 0;
-   SIGMA  = 0.005  
+   SIGMA  = 0.05  
 #  NGX =64 NGY = 64  NGZ = 98 
 #  NGXF = 128 NGYF =128 NGZF = 196
