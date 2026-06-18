@@ -192,7 +192,23 @@ case "$inp" in
 esac
 
 
+add_initial_magmom(){
+    read -p "inital magmom? (y | l)" response
+
+    case "$response" in
+        y|Y)
+            echo "Running initial_mag.py..."
+            python3 "$vaspworks_dir/PYTHONS/loop_pythons/initial_mag.py" .
+            ;;
+        l|L)
+            echo "Copying linitial_mag.py..."
+	    cp "$vaspworks_dir/PYTHONS/loop_pythons/lINCAR_mag.py" .
+            ;;
+    esac
+}
+
 # Call the functions
+add_initial_magmom
 creating_potcar_system
 creating_kpoints_system
 copying_jobs_script
