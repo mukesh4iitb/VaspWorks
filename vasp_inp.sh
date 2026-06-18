@@ -198,7 +198,7 @@ add_initial_magmom(){
     case "$response" in
         y|Y)
             echo "Running initial_mag.py..."
-            python3 "$vaspworks_dir/PYTHONS/loop_pythons/initial_mag.py" .
+            python3 "$vaspworks_dir/PYTHONS/initial_mag.py" .
             ;;
         l|L)
             echo "Copying linitial_mag.py..."
