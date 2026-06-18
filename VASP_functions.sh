@@ -1,4 +1,9 @@
 #!/usr/bin/bash
+vaspworks_location=$(which vasp_inp.sh)
+vaspworks_dir=$(dirname $vaspworks_location)
+
+source $vaspworks_dir/UTILS/vasp_inp_functions.sh
+
 
 vasp_inp_check() {
 echo -e "\e[1;32m POSCAR: \e[0m"
@@ -23,7 +28,6 @@ vasp_output_clean() {
 rm -f CHG CHGCAR CONTCAR OUTCAR OSZICAR DOSCAR EIGENVAL IBZKPT LOCPOT  PCDAT POT PROCAR REPORT vasprun.xml WAVECAR XDATCAR
 ls
 }
-
 
 ## backing up POSCAR, OUTCAR and OSZICAR files:
 
@@ -499,10 +503,11 @@ final_outcar_path () {
 
 ## To see the explain of $@ and $* see: https://unix.stackexchange.com/questions/129072/whats-the-difference-between-and
 
-vasp_job_status_combined() {
-  local input=()
+get_E0() {
+  formula=""
   # Read input: either from args or stdin
-  if (( $# > 0 )); then   # replacing this [[ -t 0 && "$#" -ne 0 ]] with (( $# > 0 ))
+  local input=()
+  if (( $# > 0 )); then
     input=("$@")
   else
     # Read from stdin into array
@@ -520,10 +525,9 @@ vasp_job_status_combined() {
      fi
      if grep -q 'User time' "$new_inp/OUTCAR" 2>/dev/null; then
        status0="Done"
-       energy0=$(grep "TOTEN" "$new_inp/OUTCAR" | tail -n 1 | awk '{print $5}')
+       energy0=$(grep "energy  without entropy" "$new_inp/OUTCAR" | tail -n 1 | awk '{print $7}')
        elems=( $(sed -n '6p' $new_inp/POSCAR) )
        nums=( $(sed -n '7p' $new_inp/POSCAR) )
-       formula=""
        for i in "${!elems[@]}"; do
            formula+="${elems[i]}${nums[i]}"
        done
@@ -727,9 +731,24 @@ conti_job() {
     drct=$(pwd)
     mkdir -p "$drct/conti"
     cp CONTCAR "$drct/conti/POSCAR"
-    cp POTCAR KPOINTS INCAR job.sh "$drct/conti/"
+    cp POTCAR KPOINTS INCAR CHGCAR job.sh "$drct/conti/"
     echo "Files copied to $drct/conti"
+    replace_add_INCAR_tag_with_external_value "$drct/conti/INCAR" ICHARG 1
 }
+
+scf_job() {
+    local drct
+    drct=$(pwd)
+    mkdir -p "$drct/scf"
+    cp CONTCAR "$drct/scf/POSCAR"
+    cp POTCAR KPOINTS CHGCAR job.sh "$drct/scf/"
+    cp $vaspworks_dir/DATA/INCAR_dos_bader "$drct/scf/INCAR" 
+    sed -i 's/--job-name[[:space:]]\+/&s/' "$drct/scf/job.sh"
+    sed -i 's/--time=[^[:space:]]*/--time=0-04:00:00/' "$drct/scf/job.sh"
+    replace_add_INCAR_tag_with_external_value "$drct/scf/INCAR" ICHARG 11
+    echo "Files copied to $drct/scf"
+}
+
 term_dirs_build () {
   mapfile -t dirs < <(find "$(pwd)" -type d -name "TERM*")
   export IDX=0
@@ -749,17 +768,6 @@ restart_job() {
     echo "Files copied to $drct/restart"
 }
 
-scf_job() {
-    local drct
-    drct=$(pwd)
-    mkdir -p "$drct/scf"
-    cp CONTCAR "$drct/scf/POSCAR"
-    cp POTCAR KPOINTS job.sh "$drct/scf/"
-    sed -i 's/--job-name[[:space:]]\+/&s/' "$drct/scf/job.sh"
-    sed -i 's/--time=[^[:space:]]*/--time=0-04:00:00/' "$drct/scf/job.sh"
-    echo "1- Files copied to $drct/scf"
-    echo "2- Put INCAR_dos_bader (including LELF tag)"
-}
 
 
 nextdir () {
