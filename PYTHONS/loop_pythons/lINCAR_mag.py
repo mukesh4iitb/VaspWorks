@@ -47,7 +47,7 @@ def replace_magmom_from_OUTCAR(drct, dst="ZPE"):
 #        sdir = f.readline().strip()
 
 def initial_magmom(drct):
-    structure = Poscar.from_file("POSCAR").structure
+    structure = Poscar.from_file(os.path.join(drct, "POSCAR")).structure
     magmom_list = []
     for i, site in enumerate(structure):
         if site.specie.symbol=="Mn":
