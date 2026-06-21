@@ -4,7 +4,7 @@
   ICHARG  = 2
   ISPIN   = 2
   LWAVE   = .FALSE.
-  LCHARG  = .FALSE.
+  LCHARG  = .TRUE.
 # NELMIN  = 8
   PREC    = Accurate
 # NBANDS  = 60
