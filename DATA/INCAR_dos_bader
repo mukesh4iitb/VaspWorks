@@ -1,7 +1,7 @@
  SYSTEM =  GRPH                            
  Electronic Relaxation 1
   ISTART  = 0
-  ICHARG  = 2
+  ICHARG  = 1
   LAECHG  = TRUE.
   LCHGCAR = TRUE.
   LELF    = TRUE.
@@ -33,7 +33,7 @@
    DOS related values
    ISMEAR = -5; 
    LORBIT = 10
-   NEDOS = 10001
+   NEDOS = 2001
    EMIN = -20
    EMAX = 20 
 #  NGX =64 NGY = 64  NGZ = 98 
