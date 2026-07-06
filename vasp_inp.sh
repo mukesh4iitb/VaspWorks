@@ -19,7 +19,7 @@ printf "%-25s%-25s\n" "105) hse-bands" "105l) lhse-bands.sh"
 echo 
 echo "ZPE/NEB calculations; IN=input, l=loop, p=post"
 printf "%-25s%-35s\n" "201) Sel Dyn POSCAR" "201l) lselective_dynamics.py"
-printf "%-25s%-35s%-25s\n" "202) ZPE-IN" "202l) lzpe.sh" "202p) pzpe.sh"
+printf "%-25s%-35s%-25s\n" "202) ZPE-IN" "202l) lzpe.py/lzpe.sh" "202p) pzpe.sh"
 printf "%-25s%-35s%-25s\n" "203) NEB-IN" "203l) lneb.sh" "203p) neb_post.sh"
 
 echo 
@@ -112,7 +112,8 @@ case "$inp" in
         ;;
 
     202l )
-        echo "copying lzpe.sh:"
+        echo "copying lzpe.py/lzpe.sh:"
+        cp $vaspworks_dir/PYTHONS/loop_pythons/lzpe.py .
         cp $vaspworks_dir/SCRIPTS/loop_scripts/lzpe.sh .
         ;;
 
