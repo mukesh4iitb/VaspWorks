@@ -75,6 +75,9 @@ def setup_zpe(drct, rzpe_path="ZPE"):
     
     # for better accuracy
     incar["LREAL"] = ".FALSE."
+    # for compatibility and efficient
+    incar["NCORE"] = 1
+
     ## Frequency calculation required.
     # number of ionic steps. Make it odd.
     incar["NSW"]    =  1           
