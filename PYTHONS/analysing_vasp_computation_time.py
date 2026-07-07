@@ -1,3 +1,5 @@
+## source: Search LOOP keyword here: https://vasp.at/tutorials/latest/magnetism/part1/
+
 print("\nusing loop_time.txt:")
 
 with open("OUTCAR") as infile, open("loop_time.txt", "w") as outfile:
